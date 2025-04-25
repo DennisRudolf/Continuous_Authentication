@@ -1,0 +1,10 @@
+venv/
+*.pkl
+*.json
+*.csv
+*.DS_Store
+*.bin
+Client/Session key/
+SP_Server/Session keys/ 
+__pycache__/
+
