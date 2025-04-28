@@ -167,7 +167,7 @@ Following successful verification, the user and SP independently derive a shared
 
 Moreover, since the session key depends on the SP's commitment $C$, a malicious SP cannot mount a man-in-the-middle attack by forwarding challenges and responses. Therefore, the user communicating with the SP is ensured to be authentic.
 
-The final step of Phase one consists of a secure handshake based on the derived symmetric key.
+The final step of Phase one consists of a secure handshake based on the derived symmetric key, as illustrated in the [Interactive Authentication Protocol](#interactive-authentication-protocol-diagram).
 
 ---
 
@@ -222,7 +222,7 @@ The user transmits $u$ and $v$ values, which the SP verifies before returning th
 
 ## Extension to Non-Interactive Authentication Protocol
 
-The enrolment protocol remains unchanged, as no modifications are required to ensure compatibility with the non-interactive variant of our authentication protocol. Therefore, we focus solely on the authentication protocol and its modifications.
+The enrolment protocol remains unchanged, as no modifications are required to ensure compatibility with the non-interactive variant of our authentication protocol. Therefore, we focus solely on the authentication protocol and its modifications, which are highlighted in bold in the [Non-Interactive Authentication Protocol](non-interactive_authentication_protocol.PNG).
 
 Specifically, by a non-interactive protocol, we refer to a setting where the challenge is generated directly by the prover. However, a minimal degree of interaction remains necessary to maintain continuous authentication, as the proof's validity must still be verified.
 
