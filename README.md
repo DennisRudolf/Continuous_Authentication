@@ -3,22 +3,22 @@
 ## Overview
 This repository contains the code, documentation, implementation details, and protocols for our paper: "Always Authenticated, Never Exposed: Continuous Authentication via Zero-Knowledge Proofs" The paper examines the integration and impact of (NI)ZKP in enhancing continuous authentication. To demonstrate this, we developed a simple continuous authentication system and integrated it with the protocol described in the paper to support (NI)ZKP.
 
-Below we further detail our protocols. Specifically, we first detail the enrollment protocol, followed by the interactive and non-interactive authentication protocols. For information on how to install and run our PoC refer to our [PoC](poc.md) and a more detailed explaination of the system architecture is provided [here](architecture.md).
+Below we further detail our protocols. Specifically, we first explain the enrollment protocol, followed by the interactive and non-interactive authentication protocols. For instructions on installing and running our PoC, please refer to [PoC Documentation](poc.md) and a more detailed explaination of the system architecture is provided [here](architecture.md).
 
-## Enrollment Protocol
+# Enrollment Protocol
 
-First, the user must send their biometric images, a password, and additional metadata to the IdP, as shown in Figure 1 below. Next, the IdP selects random images from its database according to the scheme described in "Training Data" and extracts features from these images as well as the user’s submitted image. A randomly generated 128-bit class label is assigned to the extracted features for each person and used to train the multi-class SVM, as further detailed in "SVM"". 
+First, the user must send their biometric images, a password, and additional metadata to the IdP, as shown in [Enrollment Protocol](enrollment_protocol.PNG). Next, the IdP selects random images from its database according to the scheme described in "Training Data" and extracts features from these images as well as the user’s submitted image. A randomly generated 128-bit class label is assigned to the extracted features for each person and used to train the multi-class SVM, as further detailed in "SVM"".
 
 After the training process, the enrolment user’s images are deleted from the IdP, as they are no longer required. Next, a random 128-bit salt value is generated. This salt is combined with the user’s password to derive three passwords (S1, S2, S3) using the **Password-Based Key Derivation Function 2 (PBKDF2)**. The PBKDF2 enables the deterministic and cryptographically secure derivation of multiple passwords from a single input. This allows the user to enter only one password while generating three distinct passwords for different application purposes.
 
-The **BID** is then created using the output of the multi-class SVM, specifically the class label of the legitimate user, combined with S1, as detailed in "BID". A Pedersen commitment $ C = g^x h^r \mod p $ is subsequently constructed, where \( x = \text{BID} \) and \( r = S2 \). This commitment is supplemented with metadata and a signature over the commitment and the metadata to form the **IDT**. The metadata includes at minimum the Social Security number and the public parameters of the Pedersen commitment, which is further discussed in "Metadata".
+The **BID** is then created using the output of the multi-class SVM, specifically the class label of the legitimate user, combined with S1, as detailed in "BID". A Pedersen commitment $ C = g^x h^r \mod p $ is subsequently constructed, where $ x = \text{BID} $ and $ r = S2 $. This commitment is supplemented with metadata and a signature over the commitment and the metadata to form the **IDT**. The metadata includes at minimum the Social Security number and the public parameters of the Pedersen commitment, which is further discussed in "Metadata".
 
 Finally, Gunasinghe and Bertino generate an asymmetric key pair to encrypt the classifier, without providing a justification for preferring an asymmetric approach over a symmetric one. Since the key pair is solely used for encryption, we opted for a symmetric key and employed AES, as it offers greater efficiency and faster encryption. This key is then encrypted with S3 and sent to the user along with the encrypted classifier, the IDT, and the salt value.
 
 In summary:
-- **S1** is utilised for the BID  
-- **S2** for the commitment  
-- **S3** for encrypting the key pair  
+- **S1** is utilised for the BID
+- **S2** for the commitment
+- **S3** for encrypting the key pair
 
 ---
 
@@ -30,11 +30,11 @@ With each new enrolment, the server automatically selects the training data from
 
 ### Feature Extraction
 
-For feature extraction, we utilised **Inception-ResNet v1** from the `facenet_pytorch` library, pre-trained on the **VGGFace2** database. If a compatible graphics card is available, it is used to accelerate the process. The classification function of the model is deactivated, as classification is performed by the SVM. 
+For feature extraction, we utilised **Inception-ResNet v1** from the `facenet_pytorch` library, pre-trained on the **VGGFace2** database. If a compatible graphics card is available, it is used to accelerate the process. The classification function of the model is deactivated, as classification is performed by the SVM.
 
 Since the images are already aligned, they are resized to **160x160 pixels**, as recommended by the authors. The images are then normalised, and a batch dimension is added to format them correctly for the model.
 
-> Note: Determining the optimal batch size is outside the scope of this work; a batch size of one is used.
+Note: Determining the optimal batch size is outside the scope of this work; a batch size of one is used.
 
 The model outputs **512-dimensional embeddings** of the images, which are stored as **NumPy arrays**.
 
@@ -80,8 +80,8 @@ Despite its sensitivity, the Social Security number is adopted since it is only 
 
 The metadata also includes public parameters of the **Pedersen commitment**, required for computing commitments during the authentication protocol:
 
-- **p** and **q**: large prime numbers
-- **g** and **h**: generators of the cyclic group
+- $p$ and $q$: large prime numbers
+- $g$ and $h$: generators of the cyclic group
 
 A **timestamp** from the IdP is also included, defining the **validity period** of the IDT. Once expired, the enrolment process must be repeated.
 
