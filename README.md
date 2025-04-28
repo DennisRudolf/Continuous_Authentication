@@ -93,7 +93,7 @@ A **timestamp** from the IdP is also included, defining the **validity period** 
 
 The authentication protocol consists of two main phases.
 
-Phase one is responsible for initial authentication, mutual identity verification, key exchange, and transmission of additional parameters. This phase corresponds to Steps 1–17 (see [Interactive Authentication Protocol](#interactive-authentication-protocol-diagram)) and is executed only once.  
+Phase one is responsible for initial authentication, mutual identity verification, key exchange, and transmission of additional parameters. This phase corresponds to Steps 1–17 (see [Interactive Authentication Protocol](#interactive-authentication-protocol-diagram)) and is executed only once.
 Phase two focuses exclusively on continuous authentication and covers all steps beyond Step 17. It is executed iteratively until authentication is terminated.
 
 We first describe the steps of Phase one, followed by Phase two, and explain the necessity of specific steps.
@@ -104,9 +104,9 @@ We first describe the steps of Phase one, followed by Phase two, and explain the
 
 The user initiates authentication by sending their identity token \( \text{IDT} \) and a helper Pedersen commitment \( d \) to the service provider (SP). The value \( d \) is defined as:
 
-$$
+$
 d = g^y h^s \mod p \in G_q
-$$
+$
 
 where \( y, s \in \mathbb{Z}_q \) are randomly selected secrets.
 
@@ -118,20 +118,20 @@ Upon receiving these values, the user captures an image and derives passwords \(
 
 The issued class label is concatenated with \( S_1' \) to form the binding identifier (BID). The user computes:
 
-\[
+$
 u = y + ex
-\]
-\[
+$
+$
 v = s + er
-\]
+$
 
 where \( x = \text{BID}' \) and \( r = S_2' \). The user transmits \( u \) and \( v \) to the SP.
 
 The SP verifies the following equation:
 
-\[
+$
 g^u h^v = d C^e
-\]
+$
 
 If the equation holds, authentication is successful; otherwise, it fails.
 
@@ -139,27 +139,27 @@ To confirm correctness:
 
 Given
 
-\[
+$
 C = g^x h^r
-\]
+$
 
 it follows that
 
-\[
+$
 C^e = (g^x h^r)^e = g^{xe} h^{re}
-\]
+$
 
 Thus,
 
-\[
+$
 dC^e = (g^y h^s)(g^{xe} h^{re}) = g^{y+xe} h^{s+re}
-\]
+$
 
 Since \( u = y + ex \) and \( v = s + er \), it follows that:
 
-\[
+$
 g^u h^v = g^{y+ex} h^{s+er}
-\]
+$
 
 confirming the correctness of the verification equation.
 
@@ -177,34 +177,34 @@ In Phase two, the user sends a new helper commitment \( d \), but it is unnecess
 
 Specifically, for two different challenges \( e_1 \) and \( e_2 \), the SP receives:
 
-\[
+$
 u_1 = y + e_1 x
-\]
-\[
+$
+$
 v_1 = s + e_1 r
-\]
-\[
+$
+$
 u_2 = y + e_2 x
-\]
-\[
+$
+$
 v_2 = s + e_2 r
-\]
+$
 
 Subtracting the first pair of equations:
 
-\[
+$
 u_2 - u_1 = (e_2 - e_1)x
 \quad \Rightarrow \quad
 x = \frac{u_2 - u_1}{e_2 - e_1}
-\]
+$
 
 Similarly:
 
-\[
+$
 v_2 - v_1 = (e_2 - e_1)r
 \quad \Rightarrow \quad
 r = \frac{v_2 - v_1}{e_2 - e_1}
-\]
+$
 
 Thus, the SP could compute the user's secrets if a new \( d \) is not generated for each iteration.
 
@@ -241,9 +241,9 @@ Starting from Step 18, Phase two undergoes significant modifications, transition
 
 Instead of the prover transmitting the commitment \( d \) to the verifier, the verifier independently constructs the challenge following a fixed scheme based on the strong Fiat-Shamir transformation. Specifically, the challenge is derived as:
 
-\[
+$
 e = H(C \parallel d \parallel e'_i)
-\]
+$
 
 where:
 - \( H \) denotes a cryptographically secure hash function (SHA-256),
@@ -259,9 +259,9 @@ Thereafter, the SP:
 - Derives the challenge following the same logic,
 - Verifies that:
 
-\[
+$
 e_{\text{SP}} = e_{\text{prover}}
-\]
+$
 
 - Finally, verifies the zero-knowledge proof (ZKP).
 
@@ -275,17 +275,17 @@ These steps are repeated throughout the continuous authentication session until 
 
 When applying the strong Fiat-Shamir transformation to the ZKP protocol, the challenge is initially defined as:
 
-\[
+$
 e = H(C \parallel d)
-\]
+$
 
 where \( H \) is the SHA-256 hash function.
 
 Although our protocol already integrates replay attack countermeasures through key exchange and encryption, we further strengthen robustness by incorporating the incremented server-generated challenge \( e'_i \) into the hash computation. Thus, the challenge is computed as:
 
-\[
+$
 e = H(C \parallel d \parallel e'_i)
-\]
+$
 
 This mechanism ensures that intercepted challenges cannot be reused by an attacker, as \( e'_i \) changes at each protocol iteration, even if \( d \) remains the same.
 
