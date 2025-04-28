@@ -1,101 +1,93 @@
-# (Non-interactive) Zero-Knowledge Proofs for Continuous Authentication
+# Always Authenticated, Never Exposed: Continuous Authentication via Zero-Knowledge Proofs
 
 ## Overview
-This repository contains the code, documentation, implementation details, and protocols for our paper: "(Non-interactive) Zero-Knowledge Proofs ((NI)ZKP) for Continuous Authentication." The paper examines the integration and impact of (NI)ZKP in enhancing continuous authentication. To demonstrate this, we developed a simple continuous authentication system and integrated it with the protocol described in the paper to support (NI)ZKP.
+This repository contains the code, documentation, implementation details, and protocols for our paper: "Always Authenticated, Never Exposed: Continuous Authentication via Zero-Knowledge Proofs" The paper examines the integration and impact of (NI)ZKP in enhancing continuous authentication. To demonstrate this, we developed a simple continuous authentication system and integrated it with the protocol described in the paper to support (NI)ZKP.
 
-Below we explain how to install and run our PoC. For a more detailed overview of the protocols refer to our [protocols](protocols.md) and a more detailed explaination of the system architecture is provided [here](architecture.md).
+Below we further detail our protocols. Specifically, we first detail the enrollment protocol, followed by the interactive and non-interactive authentication protocols. For information on how to install and run our PoC refer to our [PoC](poc.md) and a more detailed explaination of the system architecture is provided [here](architecture.md).
+
+## Enrollment Protocol
+
+First, the user must send their biometric images, a password, and additional metadata to the IdP, as shown in Figure 1 below. Next, the IdP selects random images from its database according to the scheme described in "Training Data" and extracts features from these images as well as the user’s submitted image. A randomly generated 128-bit class label is assigned to the extracted features for each person and used to train the multi-class SVM, as further detailed in "SVM"". 
+
+After the training process, the enrolment user’s images are deleted from the IdP, as they are no longer required. Next, a random 128-bit salt value is generated. This salt is combined with the user’s password to derive three passwords (S1, S2, S3) using the **Password-Based Key Derivation Function 2 (PBKDF2)**. The PBKDF2 enables the deterministic and cryptographically secure derivation of multiple passwords from a single input. This allows the user to enter only one password while generating three distinct passwords for different application purposes.
+
+The **BID** is then created using the output of the multi-class SVM, specifically the class label of the legitimate user, combined with S1, as detailed in "BID". A Pedersen commitment \( C = g^x h^r \mod p \) is subsequently constructed, where \( x = \text{BID} \) and \( r = S2 \). This commitment is supplemented with metadata and a signature over the commitment and the metadata to form the **IDT**. The metadata includes at minimum the Social Security number and the public parameters of the Pedersen commitment, which is further discussed in "Metadata".
+
+Finally, Gunasinghe and Bertino generate an asymmetric key pair to encrypt the classifier, without providing a justification for preferring an asymmetric approach over a symmetric one. Since the key pair is solely used for encryption, we opted for a symmetric key and employed AES, as it offers greater efficiency and faster encryption. This key is then encrypted with S3 and sent to the user along with the encrypted classifier, the IDT, and the salt value.
+
+In summary:
+- **S1** is utilised for the BID  
+- **S2** for the commitment  
+- **S3** for encrypting the key pair  
+
+---
+
+### Training Data
+
+With each new enrolment, the server automatically selects the training data from a predefined set of individuals. The optimal training set size has been determined according to the objectives and methodology outlined in the paper. Based on the evaluation results, the training dataset comprises images from **30 randomly selected individuals** out of the **62 available**, along with at least **ten images** that the enrolling user must upload. The number of images per training individual varies depending on availability but includes a minimum of **20 images per person**.
+
+---
+
+### Feature Extraction
+
+For feature extraction, we utilised **Inception-ResNet v1** from the `facenet_pytorch` library, pre-trained on the **VGGFace2** database. If a compatible graphics card is available, it is used to accelerate the process. The classification function of the model is deactivated, as classification is performed by the SVM. 
+
+Since the images are already aligned, they are resized to **160x160 pixels**, as recommended by the authors. The images are then normalised, and a batch dimension is added to format them correctly for the model.
+
+> Note: Determining the optimal batch size is outside the scope of this work; a batch size of one is used.
+
+The model outputs **512-dimensional embeddings** of the images, which are stored as **NumPy arrays**.
+
+---
+
+### BID
+
+After selecting the training users, a **128-bit random number** is generated for each user, including the enrolment user. This number serves as a class label and is used, along with the extracted features, to train the **multi-class SVM**.
+
+The class label is then concatenated with **S1** to form the **BID**, defined as: BID = Cl∥S1
 
 
-## Repository Structure
+This design ensures **revocability**, **uniqueness**, and **repeatability**. The password-derived secret (S1) enhances security by ensuring that even if the same user retrains, a different BID is created.
 
-The repository is organized into three main directories, each representing a different entity in the system: **User (Client), Identity Provider, and Service Provider**. Each directory is self-contained, containing a main script, method implementations, and additional resources.
+---
 
-```bash
-Git Repository
-│ - client/
-│   │ - user_interface.py
-│   │ - client_methods.py
-│   │ - images_user/
-│   │ - Session key/ (temporary)
-│   │ - symmetric_key.bin
-│   │ - face_classifier_encrypted/
-│
-│ - IDP/
-│   │ - idp_server.py
-│   │ - idp_server_methods.py
-│   │ - private_key.pem
-│   │ - training_data/
-│   │ - Uploads/ (temporary)
-│
-│ - Service Provider/
-│   │ - sp_server.py
-│   │ - sp_server_methods.py
-│   │ - Session key/ (temporary)
-│   │ - auth_session.csv (temporary)
-```
-## Setup Instructions
+### SVM
 
-We have added a `requirements.txt` file to the repository, which contains all the necessary dependencies. Python version 3.12.x or 3.11.x needed. Follow the steps below to set up the project:
+For the SVM implementation, we used the `sklearn` package from the **scikit-learn** library, specifically the **SVC** module. When invoking the method, kernel type and hyperparameters can be specified.
 
-### 1. Clone the Repository
-```sh
-git clone <repository_url>
-cd <repository_name>
-```
+The chosen configuration:
 
-### 2. Create a Virtual Environment
-#### Mac/Linux:
-```sh
-python3 -m venv venv
-source venv/bin/activate
-```
-#### Windows:
-```sh
-python -m venv venv
-venv\Scripts\activate
-```
+- Kernel: **RBF**
+- Gamma: **0.03125**
+- C: **8**
 
-### 3. Install Dependencies
-```sh
-pip install -r requirements.txt
-```
+Results:
 
-### 4. Start the Application
-Run the following command to start the `start_poc.py` file:
-```sh
-python start_poc.py
-```
-This will automatically start the Client, IDP Server, and SP Server.
+- **99.37% accuracy** on the test dataset
+- **97.82% accuracy** on the validation dataset
 
-### Notice: Stopping Processes Using Specific Ports (Linux/Mac)
+---
 
-If you encounter issues where certain ports (5678 or 5679) are already in use, you can follow these steps to identify and stop the processes occupying those ports. This may be necessary after restarting the server.
+### Metadata
 
-1. **Find the Process Using the Port**  
-   Run the following command in the terminal to identify the processes occupying the ports:
-   ```bash
-   lsof -i :5679
-   lsof -i :5678
+Since there is no direct communication between the **SP** and the **IdP**, the SP queries its continuous authentication server to check for an **active session**. The metadata must uniquely identify the user. Gunasinghe and Bertino propose including:
 
-2. **Stop the Process**
-    Once you have the PID, you can stop the process by running the following command:
-    ```bash
-    kill <PID>
+- **Name**
+- **Email**
+- **Social Security number**
 
-### 5. Register for an Account
-1. Click on "No Account? Register Now!".
-2. Fill in all the required information (password guidelines can be found by clicking the information icon). Then, drag and drop images from the "Training Images" folder.
-3. Press "Submit" button.
-4. Wait for the model to be trained. You'll receive a notification confirming successful registration once it's complete.
-5. Close the registration window.
+Despite its sensitivity, the Social Security number is adopted since it is only stored within the **IDT** and accessed only by **trusted SPs**.
 
-### 6. Start a Session
-1. Choose either the interactive or non-interactive version, enter your password, and click "Start Session".
-2. Enjoy seamless and continuous authentication! (Check terminal output)
+The metadata also includes public parameters of the **Pedersen commitment**, required for computing commitments during the authentication protocol:
 
-### Notice: Private Key for SP
-    The private key in the SP folder is only used to derive the public key. 
-    Normally, the SP would access the public key database, but for the PoC, we have addressed this differently.
+- **p** and **q**: large prime numbers
+- **g** and **h**: generators of the cyclic group
+
+A **timestamp** from the IdP is also included, defining the **validity period** of the IDT. Once expired, the enrolment process must be repeated.
+
+![Figure 1: Enrollment Protocol](enrollment_protocol.PNG)
+![Interactive Authentication Protocol](interactive_authentication_protocol.PNG)
+![Non-interactive Authentication Protocol](non-interactive_authentication_protocol.PNG)
 
 ## Authors
 
