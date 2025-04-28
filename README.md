@@ -102,36 +102,36 @@ We first describe the steps of Phase one, followed by Phase two, and explain the
 
 ## Phase One
 
-The user initiates authentication by sending their identity token \( \text{IDT} \) and a helper Pedersen commitment \( d \) to the service provider (SP). The value \( d \) is defined as:
+The user initiates authentication by sending their identity token $\text{IDT}$ and a helper Pedersen commitment $d$ to the service provider (SP). The value $d$ is defined as:
 
-$
+$$
 d = g^y h^s \mod p \in G_q
-$
+$$
 
-where \( y, s \in \mathbb{Z}_q \) are randomly selected secrets.
+where $y, s \in \mathbb{Z}_q$ are randomly selected secrets.
 
 The SP verifies the validity of the signature, ensures the timestamp has not expired, and confirms that the user is not present on the revocation list.
 
-Additionally, the SP generates a session timer, allowing each SP to define a maximum session duration according to security requirements. Subsequently, the SP generates parameters \( e, w, a, \) and \( b \) and transmits \( e, a, b, \) and \( t \) to the user. The session timer is displayed within the user interface, indicating the remaining validity period.
+Additionally, the SP generates a session timer, allowing each SP to define a maximum session duration according to security requirements. Subsequently, the SP generates parameters $e, w, a,$ and $b$ and transmits $e, a, b,$ and $t$ to the user. The session timer is displayed within the user interface, indicating the remaining validity period.
 
-Upon receiving these values, the user captures an image and derives passwords \( S_1', S_2', S_3' \) from the previously entered password. The password \( S_3' \) decrypts the key store, allowing access to the symmetric key used to decrypt the classifier. After decoding the classifier, image features are extracted and passed to the SVM for class label prediction. The SVM remains decrypted throughout the session.
+Upon receiving these values, the user captures an image and derives passwords $S_1', S_2', S_3'$ from the previously entered password. The password $S_3'$ decrypts the key store, allowing access to the symmetric key used to decrypt the classifier. After decoding the classifier, image features are extracted and passed to the SVM for class label prediction. The SVM remains decrypted throughout the session.
 
-The issued class label is concatenated with \( S_1' \) to form the binding identifier (BID). The user computes:
+The issued class label is concatenated with $S_1'$ to form the binding identifier (BID). The user computes:
 
-$
+$$
 u = y + ex
-$
-$
+$$
+$$
 v = s + er
-$
+$$
 
-where \( x = \text{BID}' \) and \( r = S_2' \). The user transmits \( u \) and \( v \) to the SP.
+where $x = \text{BID}'$ and $r = S_2'$. The user transmits $u$ and $v$ to the SP.
 
 The SP verifies the following equation:
 
-$
+$$
 g^u h^v = d C^e
-$
+$$
 
 If the equation holds, authentication is successful; otherwise, it fails.
 
@@ -139,33 +139,33 @@ To confirm correctness:
 
 Given
 
-$
+$$
 C = g^x h^r
-$
+$$
 
 it follows that
 
-$
+$$
 C^e = (g^x h^r)^e = g^{xe} h^{re}
-$
+$$
 
 Thus,
 
-$
+$$
 dC^e = (g^y h^s)(g^{xe} h^{re}) = g^{y+xe} h^{s+re}
-$
+$$
 
-Since \( u = y + ex \) and \( v = s + er \), it follows that:
+Since $u = y + ex$ and $v = s + er$, it follows that:
 
-$
+$$
 g^u h^v = g^{y+ex} h^{s+er}
-$
+$$
 
 confirming the correctness of the verification equation.
 
-Following successful verification, the user and SP independently derive a shared symmetric key. The key derivation depends solely on the user's \( x \) and the SP's \( w \), which are never exchanged. Consequently, only the legitimate user and SP can compute the key, mitigating the risk of impersonation attacks.
+Following successful verification, the user and SP independently derive a shared symmetric key. The key derivation depends solely on the user's $x$ and the SP's $w$, which are never exchanged. Consequently, only the legitimate user and SP can compute the key, mitigating the risk of impersonation attacks.
 
-Moreover, since the session key depends on the SP's commitment \( C \), a malicious SP cannot mount a man-in-the-middle attack by forwarding challenges and responses. Therefore, the user communicating with the SP is ensured to be authentic.
+Moreover, since the session key depends on the SP's commitment $C$, a malicious SP cannot mount a man-in-the-middle attack by forwarding challenges and responses. Therefore, the user communicating with the SP is ensured to be authentic.
 
 The final step of Phase one consists of a secure handshake based on the derived symmetric key.
 
@@ -173,44 +173,44 @@ The final step of Phase one consists of a secure handshake based on the derived 
 
 ## Phase Two
 
-In Phase two, the user sends a new helper commitment \( d \), but it is unnecessary to resend the identity token \( \text{IDT} \). Reusing the same \( d \) without regeneration introduces security vulnerabilities: the SP could recover the private key \( x \) and random value \( r \) by observing multiple responses.
+In Phase two, the user sends a new helper commitment $d$, but it is unnecessary to resend the identity token $\text{IDT}$. Reusing the same $d$ without regeneration introduces security vulnerabilities: the SP could recover the private key $x$ and random value $r$ by observing multiple responses.
 
-Specifically, for two different challenges \( e_1 \) and \( e_2 \), the SP receives:
+Specifically, for two different challenges $e_1$ and $e_2$, the SP receives:
 
-$
+$$
 u_1 = y + e_1 x
-$
-$
+$$
+$$
 v_1 = s + e_1 r
-$
-$
+$$
+$$
 u_2 = y + e_2 x
-$
-$
+$$
+$$
 v_2 = s + e_2 r
-$
+$$
 
 Subtracting the first pair of equations:
 
-$
+$$
 u_2 - u_1 = (e_2 - e_1)x
 \quad \Rightarrow \quad
 x = \frac{u_2 - u_1}{e_2 - e_1}
-$
+$$
 
 Similarly:
 
-$
+$$
 v_2 - v_1 = (e_2 - e_1)r
 \quad \Rightarrow \quad
 r = \frac{v_2 - v_1}{e_2 - e_1}
-$
+$$
 
-Thus, the SP could compute the user's secrets if a new \( d \) is not generated for each iteration.
+Thus, the SP could compute the user's secrets if a new $d$ is not generated for each iteration.
 
 During continuous authentication, the SP issues a new challenge and verifies the session timer without regenerating the session key. Authentication steps mirror those from Phase one, except that no new password derivations or classifier decryption is required.
 
-The user transmits \( u \) and \( v \) values, which the SP verifies before returning the authentication result. These steps are repeated until the session is terminated either:
+The user transmits $u$ and $v$ values, which the SP verifies before returning the authentication result. These steps are repeated until the session is terminated either:
 
 - By the user via the application,
 - Upon expiration of the session timer, or
@@ -226,7 +226,7 @@ The enrolment protocol remains unchanged, as no modifications are required to en
 
 Specifically, by a non-interactive protocol, we refer to a setting where the challenge is generated directly by the prover. However, a minimal degree of interaction remains necessary to maintain continuous authentication, as the proof's validity must still be verified.
 
-Phase one of the interactive protocol remains unchanged. In the initial draft, the prover generated the challenge \( e \), while the service provider (SP) generated a nonce and a timestamp. These could later be incorporated into challenge generation to prevent replay attacks.
+Phase one of the interactive protocol remains unchanged. In the initial draft, the prover generated the challenge $e$, while the service provider (SP) generated a nonce and a timestamp. These could later be incorporated into challenge generation to prevent replay attacks.
 
 After further consideration, we opted to initiate the challenge during this phase through the verifier rather than implementing a fully non-interactive approach for two reasons:
 
@@ -239,17 +239,17 @@ Thus, removing the separate generation of nonce and timestamp reduces both compl
 
 Starting from Step 18, Phase two undergoes significant modifications, transitioning towards a non-interactive form.
 
-Instead of the prover transmitting the commitment \( d \) to the verifier, the verifier independently constructs the challenge following a fixed scheme based on the strong Fiat-Shamir transformation. Specifically, the challenge is derived as:
+Instead of the prover transmitting the commitment $d$ to the verifier, the verifier independently constructs the challenge following a fixed scheme based on the strong Fiat-Shamir transformation. Specifically, the challenge is derived as:
 
-$
+$$
 e = H(C \parallel d \parallel e'_i)
-$
+$$
 
 where:
-- \( H \) denotes a cryptographically secure hash function (SHA-256),
-- \( C \) is the commitment,
-- \( d \) is the helper commitment,
-- \( e'_i \) is the incremented challenge for the \( i \)-th iteration.
+- $H$ denotes a cryptographically secure hash function (SHA-256),
+- $C$ is the commitment,
+- $d$ is the helper commitment,
+- $e'_i$ is the incremented challenge for the $i$-th iteration.
 
 The prover proceeds as before.
 
@@ -259,9 +259,9 @@ Thereafter, the SP:
 - Derives the challenge following the same logic,
 - Verifies that:
 
-$
+$$
 e_{\text{SP}} = e_{\text{prover}}
-$
+$$
 
 - Finally, verifies the zero-knowledge proof (ZKP).
 
@@ -275,19 +275,19 @@ These steps are repeated throughout the continuous authentication session until 
 
 When applying the strong Fiat-Shamir transformation to the ZKP protocol, the challenge is initially defined as:
 
-$
+$$
 e = H(C \parallel d)
-$
+$$
 
-where \( H \) is the SHA-256 hash function.
+where $H$ is the SHA-256 hash function.
 
-Although our protocol already integrates replay attack countermeasures through key exchange and encryption, we further strengthen robustness by incorporating the incremented server-generated challenge \( e'_i \) into the hash computation. Thus, the challenge is computed as:
+Although our protocol already integrates replay attack countermeasures through key exchange and encryption, we further strengthen robustness by incorporating the incremented server-generated challenge $e'_i$ into the hash computation. Thus, the challenge is computed as:
 
-$
+$$
 e = H(C \parallel d \parallel e'_i)
-$
+$$
 
-This mechanism ensures that intercepted challenges cannot be reused by an attacker, as \( e'_i \) changes at each protocol iteration, even if \( d \) remains the same.
+This mechanism ensures that intercepted challenges cannot be reused by an attacker, as $e'_i$ changes at each protocol iteration, even if $d$ remains the same.
 
 Consequently, each new authentication step produces a unique challenge, maintaining the protocol's resistance to replay attacks.
 
