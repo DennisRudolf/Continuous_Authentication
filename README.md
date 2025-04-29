@@ -19,10 +19,10 @@ $$
 
 is subsequently constructed, where $x = \text{BID}$ and $r = S2$. This commitment is supplemented with metadata and a signature over the commitment and the metadata to form the IDT. The metadata includes at minimum the Social Security number and the public parameters of the Pedersen commitment, which is further discussed in "Metadata".
 
-Finally,we generate an asymmetric key pair to encrypt the classifier. This key is then encrypted with S3 and sent to the user along with the encrypted classifier, the IDT, and the salt value.
+Finally, we generate an asymmetric key pair to encrypt the classifier. This key is then encrypted with S3 and sent to the user along with the encrypted classifier, the IDT, and the salt value.
 
 In summary:
-- **S1** is utilised for the BID
+- **S1** is utilized for the BID
 - **S2** for the commitment
 - **S3** for encrypting the key pair
 
@@ -36,9 +36,9 @@ With each new enrollment, the server automatically selects the training data fro
 
 ### Feature Extraction
 
-For feature extraction, we utilised Inception-ResNet v1 from the `facenet_pytorch` library, pre-trained on the VGGFace2 database. If a compatible graphics card is available, it is used to accelerate the process. The classification function of the model is deactivated, as classification is performed by the SVM.
+For feature extraction, we utilized Inception-ResNet v1 from the `facenet_pytorch` library, pre-trained on the VGGFace2 database. If a compatible graphics card is available, it is used to accelerate the process. The classification function of the model is deactivated, as classification is performed by the SVM.
 
-Since the images are already aligned, they are resized to 160x160 pixels, as recommended by the authors. The images are then normalised, and a batch dimension is added to format them correctly for the model.
+Since the images are already aligned, they are resized to 160x160 pixels, as recommended by the authors. The images are then normalized, and a batch dimension is added to format them correctly for the model.
 
 Note: Determining the optimal batch size is outside the scope of this work; a batch size of one is used.
 
