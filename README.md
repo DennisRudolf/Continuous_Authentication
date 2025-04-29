@@ -7,9 +7,9 @@ Below we further detail our protocols. Specifically, we first explain the enroll
 
 # Enrollment Protocol
 
-First, the user must send their biometric images, a password, and additional metadata to the IdP, as shown in [Enrollment Protocol](#Enrollment-Protocol-Diagram). Next, the IdP selects random images from its database according to the scheme described in "Training Data" and extracts features from these images as well as the user’s submitted image. A randomly generated 128-bit class label is assigned to the extracted features for each person and used to train the multi-class SVM, as further detailed in "SVM"".
+First, the user must send their biometric images, a password, and additional metadata to the IdP, as shown in the [Enrollment Protocol](#Enrollment-Protocol-Diagram). Next, the IdP selects random images from its database according to the scheme described in "Training Data" and extracts features from these images as well as the user’s submitted image. A randomly generated 128-bit class label is assigned to the extracted features for each person and used to train the multi-class SVM, as further detailed in "SVM"".
 
-After the training process, the enrolment user’s images are deleted from the IdP, as they are no longer required. Next, a random 128-bit salt value is generated. This salt is combined with the user’s password to derive three passwords (S1, S2, S3) using the Password-Based Key Derivation Function 2 (PBKDF2). The PBKDF2 enables the deterministic and cryptographically secure derivation of multiple passwords from a single input. This allows the user to enter only one password while generating three distinct passwords for different application purposes.
+After the training process, the enrollment user’s images are deleted from the IdP, as they are no longer required. Next, a random 128-bit salt value is generated. This salt is combined with the user’s password to derive three passwords (S1, S2, S3) using the Password-Based Key Derivation Function 2 (PBKDF2). The PBKDF2 enables the deterministic and cryptographically secure derivation of multiple passwords from a single input. This allows the user to enter only one password while generating three distinct passwords for different application purposes.
 
 The BID is then created using the output of the multi-class SVM, specifically the class label of the legitimate user, combined with S1, as detailed in "BID". A Pedersen commitment 
 
@@ -19,7 +19,7 @@ $$
 
 is subsequently constructed, where $x = \text{BID}$ and $r = S2$. This commitment is supplemented with metadata and a signature over the commitment and the metadata to form the IDT. The metadata includes at minimum the Social Security number and the public parameters of the Pedersen commitment, which is further discussed in "Metadata".
 
-Finally, Gunasinghe and Bertino generate an asymmetric key pair to encrypt the classifier, without providing a justification for preferring an asymmetric approach over a symmetric one. Since the key pair is solely used for encryption, we opted for a symmetric key and employed AES, as it offers greater efficiency and faster encryption. This key is then encrypted with S3 and sent to the user along with the encrypted classifier, the IDT, and the salt value.
+Finally,we generate an asymmetric key pair to encrypt the classifier. This key is then encrypted with S3 and sent to the user along with the encrypted classifier, the IDT, and the salt value.
 
 In summary:
 - **S1** is utilised for the BID
@@ -30,7 +30,7 @@ In summary:
 
 ### Training Data
 
-With each new enrolment, the server automatically selects the training data from a predefined set of individuals. The optimal training set size has been determined according to the objectives and methodology outlined in the paper. Based on the evaluation results, the training dataset comprises images from 30 randomly selected individuals out of the 62 available, along with at least ten images that the enrolling user must upload. The number of images per training individual varies depending on availability but includes a minimum of 20 images per person.
+With each new enrollment, the server automatically selects the training data from a predefined set of individuals. The optimal training set size has been determined according to the objectives and methodology outlined in the paper. Based on the evaluation results, the training dataset comprises images from 30 randomly selected individuals out of the 62 available, along with at least ten images that the enrolling user must upload. The number of images per training individual varies depending on availability but includes a minimum of 20 images per person.
 
 ---
 
@@ -48,7 +48,7 @@ The model outputs 512-dimensional embeddings of the images, which are stored as 
 
 ### BID
 
-After selecting the training users, a 128-bit random number is generated for each user, including the enrolment user. This number serves as a class label and is used, along with the extracted features, to train the multi-class SVM.
+After selecting the training users, a 128-bit random number is generated for each user, including the enrollment user. This number serves as a class label and is used, along with the extracted features, to train the multi-class SVM.
 
 The class label is then concatenated with **S1** to form the BID, defined as: BID = Cl∥S1
 
@@ -76,7 +76,7 @@ Results:
 
 ### Metadata
 
-Since there is no direct communication between the SP and the IdP, the SP queries its continuous authentication server to check for an active session. The metadata must uniquely identify the user. Gunasinghe and Bertino propose including:
+Since there is no direct communication between the SP and the IdP, the metadata must uniquely identify the user. Thus, we include:
 
 - Name
 - Email
@@ -89,7 +89,7 @@ The metadata also includes public parameters of the Pedersen commitment, require
 - $p$ and $q$: large prime numbers
 - $g$ and $h$: generators of the cyclic group
 
-A timestamp from the IdP is also included, defining the validity period of the IDT. Once expired, the enrolment process must be repeated.
+A timestamp from the IdP is also included, defining the validity period of the IDT. Once expired, the enrollment process must be repeated.
 
 ### Enrollment Protocol Diagram
 ![Enrollment Protocol](enrollment_protocol.PNG)
@@ -110,7 +110,7 @@ We first describe the steps of Phase one, followed by Phase two, and explain the
 
 ## Phase One
 
-The user initiates authentication by sending their identity token $\text{IDT}$ and a helper Pedersen commitment $d$ to the service provider (SP). The value $d$ is defined as:
+The user initiates authentication by sending their identity token $\text{IDT}$ and a helper Pedersen commitment $d$ to the SP. The value $d$ is defined as:
 
 $$
 d = g^y h^s \mod p \in G_q
@@ -118,7 +118,7 @@ $$
 
 where $y, s \in \mathbb{Z}_q$ are randomly selected secrets.
 
-The SP verifies the validity of the signature, ensures the timestamp has not expired, and confirms that the user is not present on the revocation list.
+The SP verifies the validity of the signature and ensures the timestamp has not expired.
 
 Additionally, the SP generates a session timer, allowing each SP to define a maximum session duration according to security requirements. Subsequently, the SP generates parameters $e, w, a,$ and $b$ and transmits $e, a, b,$ and $t$ to the user. The session timer is displayed within the user interface, indicating the remaining validity period.
 
@@ -171,7 +171,7 @@ $$
 
 confirming the correctness of the verification equation.
 
-Following successful verification, the user and SP independently derive a shared symmetric key. The key derivation depends solely on the user's $x$ and the SP's $w$, which are never exchanged. Consequently, only the legitimate user and SP can compute the key, mitigating the risk of impersonation attacks.
+Following successful verification, the user and SP independently derive a shared symmetric key. The key derivation depends on the user's $x$ and the SP's $w$, which are never exchanged. Consequently, only the legitimate user and SP can compute the key, mitigating the risk of impersonation attacks.
 
 Moreover, since the session key depends on the SP's commitment $C$, a malicious SP cannot mount a man-in-the-middle attack by forwarding challenges and responses. Therefore, the user communicating with the SP is ensured to be authentic.
 
@@ -230,11 +230,11 @@ The user transmits $u$ and $v$ values, which the SP verifies before returning th
 
 ## Extension to Non-Interactive Authentication Protocol
 
-The enrolment protocol remains unchanged, as no modifications are required to ensure compatibility with the non-interactive variant of our authentication protocol. Therefore, we focus solely on the authentication protocol and its modifications, which are highlighted in bold in the [Non-Interactive Authentication Protocol](#non-interactive-authentication-diagram).
+The enrollment protocol remains unchanged, as no modifications are required to ensure compatibility with the non-interactive variant of our authentication protocol. Therefore, we focus solely on the authentication protocol and its modifications, which are highlighted in bold in the [Non-Interactive Authentication Protocol](#non-interactive-authentication-diagram).
 
-Specifically, by a non-interactive protocol, we refer to a setting where the challenge is generated directly by the prover. However, a minimal degree of interaction remains necessary to maintain continuous authentication, as the proof's validity must still be verified.
+Specifically, by a non-interactive protocol, we refer to a setting where the challenge is generated directly by the prover. However, a certain degree of interaction remains necessary to maintain continuous authentication, as the proof's validity must still be verified.
 
-Phase one of the interactive protocol remains unchanged. In the initial draft, the prover generated the challenge $e$, while the service provider (SP) generated a nonce and a timestamp. These could later be incorporated into challenge generation to prevent replay attacks.
+Phase one of the interactive protocol remains unchanged. In the initial draft, the prover generated the challenge $e$, while the SP generated a nonce and a timestamp. These could later be incorporated into challenge generation to prevent replay attacks.
 
 After further consideration, we opted to initiate the challenge during this phase through the verifier rather than implementing a fully non-interactive approach for two reasons:
 
@@ -245,9 +245,9 @@ Thus, removing the separate generation of nonce and timestamp reduces both compl
 
 ## Phase Two: Transition to Non-Interactive Protocol
 
-Starting from Step 18, Phase two undergoes significant modifications, transitioning towards a non-interactive form.
+Starting from Step 18, Phase two undergoes more significant modifications, transitioning towards a non-interactive form.
 
-Instead of the prover transmitting the commitment $d$ to the verifier, the verifier independently constructs the challenge following a fixed scheme based on the strong Fiat-Shamir transformation. Specifically, the challenge is derived as:
+Instead of the prover transmitting the commitment $d$ to the verifier, the verifier independently constructs the challenge following a fixed scheme based on the strong Fiat-Shamir transformation, which is furhter described in "Challenge Construction" . Specifically, the challenge is derived as:
 
 $$
 e = H(C \parallel d \parallel e'_i)
@@ -271,7 +271,7 @@ $$
 e_{\text{SP}} = e_{\text{prover}}
 $$
 
-- Finally, verifies the zero-knowledge proof (ZKP).
+- Finally, verifies the ZKP.
 
 If both conditions are satisfied, the SP returns the authentication result to the user.
 
