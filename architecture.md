@@ -37,7 +37,7 @@ If unsuccessful:
 - The user is required to resolve the issue and retry the process.
 
 ### Registration Window
-![Registration Window](registration_window.PNG)
+![Registration Window](registration_window.png)
 
 ## Authentication Function
 
@@ -68,7 +68,7 @@ The session can be terminated by:
 - ZKP verification failing
 
 ### Authentication Window
-![Authentication Window](authentication_window.PNG)
+![Authentication Window](authentication_window.png)
 ---
 
 # Flask Webservers
