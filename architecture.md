@@ -2,14 +2,14 @@
 
 The client component is implemented as a Windows and MacOS application using Tkinter. The application provides two main functionalities for the user:
 
-1. Account creation, which is registration with the enrolment protocol.
+1. Account creation, which is registration with the enrollment protocol.
 2. Initiating a continuous authentication session, corresponding to the authentication protocol.
 
 The following two sections describe these functionalities in detail.
 
 ## Registration Function
 
-The registration window, depicted in the [Registration Window](#Registration-Window), enables the user to execute the enrolment protocol with the IdP.
+The registration window, depicted in the [Registration Window](#Registration-Window), enables the user to execute the enrollment protocol with the IdP.
 
 To initiate this process, the user must complete the registration form, which includes:
 
@@ -26,7 +26,7 @@ Upon clicking the “Submit” button:
 
 If successful:
 
-- The returned JSON data is stored locally, as specified in the enrolment protocol.
+- The returned JSON data is stored locally, as specified in the enrollment protocol.
 - Two GET requests are triggered to download and save:
   - The encrypted classifier
   - The keystore
