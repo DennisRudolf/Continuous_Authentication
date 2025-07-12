@@ -304,7 +304,7 @@ Consequently, each new authentication step produces a unique challenge, maintain
 
 ## Authors
 
-Dennis Hamm, Erwin Kurpis, Thomas Schreck
+---
 
-Contact for questions: d.hamm@tar.de
+Contact for questions: ---
 
